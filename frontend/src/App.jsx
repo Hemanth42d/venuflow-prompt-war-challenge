@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Navbar from './components/Navbar';
+import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
 import Navigation from './pages/Navigation';
@@ -76,11 +77,13 @@ export default function App() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Routes>
-      {/* Access gate at / */}
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AccessGate />} />
-      {/* All protected routes */}
-      <Route path="/*" element={isAuthenticated ? <ProtectedApp /> : <Navigate to="/" replace />} />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        {/* Access gate at / */}
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AccessGate />} />
+        {/* All protected routes */}
+        <Route path="/*" element={isAuthenticated ? <ProtectedApp /> : <Navigate to="/" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }

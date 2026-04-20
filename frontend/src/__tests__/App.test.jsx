@@ -42,4 +42,37 @@ describe('App', () => {
     const input = screen.getByRole('textbox') || screen.getByPlaceholderText(/access/i);
     expect(input).toBeTruthy();
   });
+
+  it('login with DEMO-ACCESS grants access to protected routes', () => {
+    // Set localStorage to simulate logged-in state
+    const sess = {
+      accessId: 'DEMO-ACCESS',
+      role: 'Demo User',
+      level: 'demo',
+      isDemo: true,
+      isAdmin: false,
+      isSuperAdmin: false,
+      loginAt: Date.now(),
+    };
+    localStorage.setItem('vf_session', JSON.stringify(sess));
+
+    renderApp('/dashboard');
+    // Should redirect to dashboard content (not show access gate)
+    expect(screen.queryByPlaceholderText(/VENUE-OPS-001/i)).toBeNull();
+  });
+
+  it('invalid access ID shows error message', async () => {
+    const { container } = renderApp('/');
+    const input = screen.getByRole('textbox');
+    const form = container.querySelector('form');
+
+    // Type invalid ID and submit
+    await import('@testing-library/react').then(({ fireEvent }) => {
+      fireEvent.change(input, { target: { value: 'INVALID-KEY' } });
+      fireEvent.submit(form);
+    });
+
+    // Error should be displayed
+    expect(screen.getByText(/Invalid/i)).toBeTruthy();
+  });
 });

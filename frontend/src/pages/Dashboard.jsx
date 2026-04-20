@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, Zap, AlertTriangle, ArrowRight, ArrowUpRight, ArrowDownRight,
@@ -10,7 +10,7 @@ import VenueMap from '../components/VenueMap';
 import { getIntelligence } from '../lib/api';
 
 /* ── Sparkline ── */
-function Sparkline({ data = [], color = '#4285F4', height = 24, width = 64 }) {
+const Sparkline = memo(function Sparkline({ data = [], color = '#4285F4', height = 24, width = 64 }) {
   if (data.length < 2) return null;
   const max = Math.max(...data, 1);
   const min = Math.min(...data, 0);
@@ -27,10 +27,10 @@ function Sparkline({ data = [], color = '#4285F4', height = 24, width = 64 }) {
       <circle cx={width} cy={lastY} r="2" fill={color} />
     </svg>
   );
-}
+});
 
 /* ── Vertical KPI Card (for right panel) ── */
-function KpiCard({ icon: Icon, label, value, sub, trend, sparkData, sparkColor, iconBg }) {
+const KpiCard = memo(function KpiCard({ icon: Icon, label, value, sub, trend, sparkData, sparkColor, iconBg }) {
   const isUp = trend?.startsWith('+');
   return (
     <div className="bg-google-gray-50 rounded-xl border border-google-gray-100 p-3 hover:shadow-sm transition-shadow">
@@ -54,7 +54,7 @@ function KpiCard({ icon: Icon, label, value, sub, trend, sparkData, sparkColor, 
       </div>
     </div>
   );
-}
+});
 
 /* ── Helpers ── */
 const SEV = {
@@ -103,9 +103,9 @@ export default function Dashboard({ events, zones, alerts }) {
   const totalAtt = intel?.summary?.totalAttendees ?? events.reduce((s, e) => s + (e.currentAttendees || 0), 0);
   const totalCap = intel?.summary?.totalCapacity ?? events.reduce((s, e) => s + (e.maxCapacity || 0), 0);
   const pctAll = intel?.summary?.overallPct ?? (totalCap > 0 ? Math.round((totalAtt / totalCap) * 100) : 0);
-  const live = events.filter((e) => e.status === 'live');
-  const critical = zones.filter((z) => z.crowdLevel === 'critical' || z.crowdLevel === 'high');
-  const unread = alerts.filter((a) => !a.read);
+  const live = useMemo(() => events.filter((e) => e.status === 'live'), [events]);
+  const critical = useMemo(() => zones.filter((z) => z.crowdLevel === 'critical' || z.crowdLevel === 'high'), [zones]);
+  const unread = useMemo(() => alerts.filter((a) => !a.read), [alerts]);
 
   const handleSim = () => { setSimulating(true); setTimeout(() => { setSimulating(false); fetchIntel(); }, 2000); };
 

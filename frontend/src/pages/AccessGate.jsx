@@ -40,9 +40,9 @@ export default function AccessGate() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="access-id" className="block text-sm font-medium text-google-gray-700 mb-2">Access ID</label>
-                  <input id="access-id" type="text" value={accessId} onChange={(e) => { setAccessId(e.target.value); setError(''); }} placeholder="e.g. VENUE-OPS-001" className="w-full px-4 py-3 rounded-lg border border-google-gray-300 text-sm text-google-gray-900 placeholder:text-google-gray-400 focus:outline-none focus:border-google-blue focus:ring-1 focus:ring-google-blue transition-colors" autoFocus autoComplete="off" spellCheck="false" />
+                  <input id="access-id" type="text" value={accessId} onChange={(e) => { setAccessId(e.target.value); setError(''); }} placeholder="e.g. VENUE-OPS-001" className="w-full px-4 py-3 rounded-lg border border-google-gray-300 text-sm text-google-gray-900 placeholder:text-google-gray-400 focus:outline-none focus:border-google-blue focus:ring-1 focus:ring-google-blue transition-colors" autoFocus autoComplete="off" spellCheck="false" aria-describedby={error ? 'access-id-error' : undefined} aria-invalid={!!error} />
                 </div>
-                {error && <div className="flex items-start gap-2 text-sm text-google-red"><AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" /><span>{error}</span></div>}
+                {error && <div aria-live="polite" role="alert" aria-atomic="true" className="flex items-start gap-2 text-sm text-google-red" id="access-id-error"><AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" /><span>{error}</span></div>}
                 <div className="flex items-center justify-between pt-2">
                   <button type="button" onClick={() => login('DEMO-ACCESS')} className="text-sm font-medium text-google-blue hover:text-google-darkBlue transition-colors">Try demo</button>
                   <button type="submit" className="bg-google-blue text-white px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-google-darkBlue hover:shadow-md transition-all active:scale-[0.98]">Next <ArrowRight className="w-4 h-4 inline-block ml-1.5 -mt-0.5" /></button>

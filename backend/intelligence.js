@@ -7,6 +7,19 @@
  */
 import store from './demoStore.js';
 
+// ── Memoization cache for intelligence results ──
+// Caches results for 2 seconds to avoid recomputation on rapid polling
+let _intelligenceCache = null;
+let _intelligenceCacheTime = 0;
+const CACHE_TTL_MS = 2000;
+
+// ── Zone lookup Map for O(1) access in hot paths ──
+function buildZoneMap(zones) {
+  const map = new Map();
+  for (const z of zones) map.set(z.id, z);
+  return map;
+}
+
 // Simulated historical trend data (sparkline points, last 8 intervals)
 function generateTrend(current, capacity, volatility = 0.15) {
   const points = [];
@@ -55,8 +68,15 @@ function getEventPhase(event) {
 }
 
 export function getIntelligence() {
+  // Return cached result if within TTL
+  const now = Date.now();
+  if (_intelligenceCache && (now - _intelligenceCacheTime) < CACHE_TTL_MS) {
+    return _intelligenceCache;
+  }
+
   const events = store.events;
   const zones = store.zones;
+  const zoneMap = buildZoneMap(zones);
 
   const totalAttendees = events.reduce((s, e) => s + (e.currentAttendees || 0), 0);
   const totalCapacity = events.reduce((s, e) => s + (e.maxCapacity || 0), 0);
@@ -207,8 +227,8 @@ export function getIntelligence() {
   }
 
   // Specific food court rerouting based on capacity predictions
-  const foodCourtA = zones.find((z) => z.id === 'food-court-a');
-  const foodCourtB = zones.find((z) => z.id === 'food-court-b');
+  const foodCourtA = zoneMap.get('food-court-a');
+  const foodCourtB = zoneMap.get('food-court-b');
   if (foodCourtA && foodCourtB) {
     const ratioA = (foodCourtA.currentOccupancy || 0) / foodCourtA.capacity;
     const ratioB = (foodCourtB.currentOccupancy || 0) / foodCourtB.capacity;
@@ -224,7 +244,7 @@ export function getIntelligence() {
   }
 
   // Mobile cart deployment suggestion
-  const southConcourse = zones.find((z) => z.id === 'south-concourse');
+  const southConcourse = zoneMap.get('south-concourse');
   if (avgFoodUtil > 25 && southConcourse) {
     const scRatio = (southConcourse.currentOccupancy || 0) / southConcourse.capacity;
     suggestions.push({
@@ -279,7 +299,7 @@ export function getIntelligence() {
     ...getEventPhase(e),
   }));
 
-  return {
+  const result = {
     insights,
     trends,
     bottlenecks,
@@ -297,4 +317,10 @@ export function getIntelligence() {
       unreadAlerts: store.alerts.filter((a) => !a.read).length,
     },
   };
+
+  // Store in cache
+  _intelligenceCache = result;
+  _intelligenceCacheTime = now;
+
+  return result;
 }

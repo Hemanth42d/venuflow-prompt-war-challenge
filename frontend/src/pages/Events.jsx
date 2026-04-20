@@ -256,15 +256,15 @@ export default function Events({ events, zones }) {
                 <div className="px-4 sm:px-5 pb-3">
                   {evt.status === 'live' && (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-google-gray-50 border border-google-gray-100 flex-wrap">
-                      <button onClick={() => handleEnter(evt)} disabled={isFull || isLoading === 'enter'} className="btn-primary flex items-center gap-1.5 text-xs px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button onClick={() => handleEnter(evt)} disabled={isFull || isLoading === 'enter'} aria-label={`Join event ${evt.name}`} className="btn-primary flex items-center gap-1.5 text-xs px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <LogIn className="w-3.5 h-3.5" />
                         {isLoading === 'enter' ? 'Joining...' : isFull ? 'Full' : 'Join Event'}
                       </button>
-                      <button onClick={() => handleJoinAndNavigate(evt)} disabled={isFull || isLoading === 'enter'} className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button onClick={() => handleJoinAndNavigate(evt)} disabled={isFull || isLoading === 'enter'} aria-label={`Join and navigate to ${evt.name}`} className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <Navigation2 className="w-3.5 h-3.5" /> Join & Navigate
                       </button>
                       <div className="w-px h-6 bg-google-gray-200 mx-1 hidden sm:block" />
-                      <button onClick={() => handleLeave(evt)} disabled={evt.currentAttendees <= 0 || isLoading === 'leave'} className="btn-danger flex items-center gap-1.5 text-xs px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button onClick={() => handleLeave(evt)} disabled={evt.currentAttendees <= 0 || isLoading === 'leave'} aria-label={`Leave event ${evt.name}`} className="btn-danger flex items-center gap-1.5 text-xs px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <LogOut className="w-3.5 h-3.5" />
                         {isLoading === 'leave' ? 'Leaving...' : 'Exit Event'}
                       </button>
@@ -289,7 +289,7 @@ export default function Events({ events, zones }) {
 
                 {/* Expand toggle */}
                 <div className="px-4 sm:px-5">
-                  <button onClick={() => setExpandedEvent(isExpanded ? null : evt.id)} className="flex items-center gap-1.5 text-xs text-google-gray-400 hover:text-google-gray-600 transition-colors pb-3 w-full">
+                  <button onClick={() => setExpandedEvent(isExpanded ? null : evt.id)} aria-expanded={isExpanded} aria-controls={`event-details-${evt.id}`} className="flex items-center gap-1.5 text-xs text-google-gray-400 hover:text-google-gray-600 transition-colors pb-3 w-full">
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                     {isExpanded ? 'Hide details' : 'Event details & nearby'}
                   </button>
@@ -297,7 +297,7 @@ export default function Events({ events, zones }) {
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="px-4 sm:px-5 pb-5 border-t border-google-gray-100 space-y-4 pt-4">
+                  <div id={`event-details-${evt.id}`} className="px-4 sm:px-5 pb-5 border-t border-google-gray-100 space-y-4 pt-4">
                     <p className="text-sm text-google-gray-500">{evt.description}</p>
 
                     {/* Crowd trend prediction */}
