@@ -1,5 +1,13 @@
+/**
+ * @fileoverview VenueFlow Express server entry point.
+ * Configures middleware (CORS, Helmet, rate limiting), mounts API routes
+ * (Firebase-backed or in-memory demo), and serves the frontend SPA in production.
+ * @module server
+ */
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -11,8 +19,46 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const USE_FIREBASE = process.env.USE_FIREBASE === 'true';
 
+// Security headers
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Rate limiting for API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // limit each IP to 200 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+});
+app.use('/api', apiLimiter);
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+/**
+ * Sanitizes a string value by trimming and removing HTML tags.
+ * @param {string} val - The input string.
+ * @returns {string} Sanitized string.
+ */
+function sanitize(val) {
+  if (typeof val !== 'string') return val;
+  return val.trim().replace(/<[^>]*>/g, '');
+}
+
+/**
+ * Middleware that sanitizes all string fields in req.body for POST/PUT requests.
+ */
+function sanitizeBody(req, res, next) {
+  if (req.body && typeof req.body === 'object') {
+    for (const key of Object.keys(req.body)) {
+      if (typeof req.body[key] === 'string') {
+        req.body[key] = sanitize(req.body[key]);
+      }
+    }
+  }
+  next();
+}
+app.use(sanitizeBody);
 
 if (USE_FIREBASE) {
   // Firebase-backed routes

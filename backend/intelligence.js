@@ -1,4 +1,10 @@
-// Intelligence engine — computes insights, bottlenecks, suggestions, flow, event phases
+/**
+ * @fileoverview Predictive intelligence engine for VenueFlow.
+ * Computes real-time smart insights, bottleneck detection, suggested operational
+ * actions, movement flow indicators, and event phase tracking. Auto-refreshes
+ * every 5 seconds on the frontend to provide live decision support.
+ * @module intelligence
+ */
 import store from './demoStore.js';
 
 // Simulated historical trend data (sparkline points, last 8 intervals)

@@ -51,10 +51,13 @@ function ProtectedApp() {
 
   return (
     <div className="min-h-screen bg-google-gray-50">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-google-blue focus:text-white focus:rounded-lg">
+        Skip to main content
+      </a>
       <Navbar unreadAlerts={unreadAlerts} />
       {isDashboard && <Dashboard events={events} zones={zones} alerts={alerts} />}
       {!isDashboard && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Routes>
             <Route path="/events" element={<Events events={events} zones={zones} />} />
             <Route path="/navigation" element={<Navigation zones={zones} />} />

@@ -1,4 +1,10 @@
-// In-memory demo store — used when Firebase is not configured
+/**
+ * @fileoverview In-memory demo data store for VenueFlow.
+ * Provides a zero-configuration runtime store with CRUD operations for events,
+ * zones, alerts, and analytics. Used as the default mode when Firebase is not
+ * configured. Initializes with seed data (8 events, 15 zones, 7 alerts).
+ * @module demoStore
+ */
 import { VENUE_ZONES, SEED_EVENTS } from './venueData.js';
 
 function getCrowdLevel(occupancy, capacity) {

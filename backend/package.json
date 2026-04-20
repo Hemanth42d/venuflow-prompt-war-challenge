@@ -5,12 +5,15 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "test": "node --test __tests__/api.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "firebase-admin": "^12.0.0"
+    "express-rate-limit": "^7.5.1",
+    "firebase-admin": "^12.0.0",
+    "helmet": "^7.2.0"
   }
 }

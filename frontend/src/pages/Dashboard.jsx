@@ -134,7 +134,7 @@ export default function Dashboard({ events, zones, alerts }) {
       </div>
 
       {/* ═══════════ LEFT PANEL ═══════════ */}
-      <aside className="hidden lg:flex flex-col gradient-dark text-white overflow-y-auto rounded-2xl shadow-lg">
+      <aside role="complementary" aria-label="Operational status" className="hidden lg:flex flex-col gradient-dark text-white overflow-y-auto rounded-2xl shadow-lg">
         {/* Header */}
         <div className="p-4 pb-3">
           <div className="flex items-center gap-2 mb-2">
@@ -215,7 +215,7 @@ export default function Dashboard({ events, zones, alerts }) {
       </aside>
 
       {/* ═══════════ CENTER COLUMN ═══════════ */}
-      <main className="overflow-y-auto bg-google-gray-50 lg:rounded-2xl">
+      <main role="main" aria-label="Dashboard content" className="overflow-y-auto bg-google-gray-50 lg:rounded-2xl">
         <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
 
           {/* Smart Insights + Suggested Actions — side by side */}
@@ -409,7 +409,7 @@ export default function Dashboard({ events, zones, alerts }) {
       </main>
 
       {/* ═══════════ RIGHT PANEL ═══════════ */}
-      <aside className="hidden lg:flex flex-col bg-white overflow-y-auto rounded-2xl shadow-lg border border-google-gray-200">
+      <aside role="complementary" aria-label="Key metrics" className="hidden lg:flex flex-col bg-white overflow-y-auto rounded-2xl shadow-lg border border-google-gray-200">
         <div className="p-3 pb-2 border-b border-google-gray-100">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-3.5 h-3.5 text-google-gray-400" />

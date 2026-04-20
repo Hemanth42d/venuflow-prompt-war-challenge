@@ -319,6 +319,19 @@ The application comes pre-loaded with:
 
 ---
 
+---
+
+## Google Cloud Services Used
+
+| Service | Purpose |
+|---------|---------|
+| **Google Cloud Run** | Serverless container hosting for the production deployment |
+| **Google Cloud Build** | CI/CD pipeline for automated builds and deployments |
+| **Google Container Registry** | Docker image storage and management |
+| **Firebase Firestore** | Real-time NoSQL database for live data synchronization |
+
+---
+
 <p align="center">
   Built for the <strong>Prompt Wars Challenge</strong> by <strong>Hack2Skill</strong>
 </p>
