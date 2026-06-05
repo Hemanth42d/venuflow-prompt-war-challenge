@@ -155,36 +155,58 @@ router.patch('/alerts/:id/read', (req, res) => {
   res.json(demo.markAlertRead(req.params.id));
 });
 
+const VALID_IDS = {
+  'VENUE-OPS-001': { role: 'Operations', level: 'admin' },
+  'ADMIN-2026': { role: 'Administrator', level: 'admin' },
+  'STAFF-ALPHA': { role: 'Staff', level: 'staff' },
+  'DEMO-ACCESS': { role: 'Demo User', level: 'demo' },
+  'SUPERADMIN': { role: 'Super Admin', level: 'superadmin' },
+};
+
+function requireAdmin(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
+  }
+  const token = authHeader.substring(7).trim().toUpperCase();
+  const match = VALID_IDS[token];
+  if (!match || (match.level !== 'admin' && match.level !== 'superadmin')) {
+    return res.status(403).json({ error: 'Forbidden: Admin access required' });
+  }
+  req.user = { accessId: token, ...match };
+  next();
+}
+
 // ── Admin: Events CRUD ──
-router.post('/admin/events', (req, res) => {
+router.post('/admin/events', requireAdmin, (req, res) => {
   try { res.json(demo.createEvent(req.body)); }
   catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-router.put('/admin/events/:id', (req, res) => {
+router.put('/admin/events/:id', requireAdmin, (req, res) => {
   try { res.json(demo.updateEvent(req.params.id, req.body)); }
-  catch (err) { res.status(404).json({ error: err.message }); }
+  catch (err) { res.status(err.message.includes('not found') ? 404 : 400).json({ error: err.message }); }
 });
 
-router.delete('/admin/events/:id', (req, res) => {
+router.delete('/admin/events/:id', requireAdmin, (req, res) => {
   try { res.json(demo.deleteEvent(req.params.id)); }
-  catch (err) { res.status(404).json({ error: err.message }); }
+  catch (err) { res.status(err.message.includes('not found') ? 404 : 400).json({ error: err.message }); }
 });
 
 // ── Admin: Zones CRUD ──
-router.post('/admin/zones', (req, res) => {
+router.post('/admin/zones', requireAdmin, (req, res) => {
   try { res.json(demo.createZone(req.body)); }
   catch (err) { res.status(400).json({ error: err.message }); }
 });
 
-router.put('/admin/zones/:id', (req, res) => {
+router.put('/admin/zones/:id', requireAdmin, (req, res) => {
   try { res.json(demo.updateZone(req.params.id, req.body)); }
-  catch (err) { res.status(404).json({ error: err.message }); }
+  catch (err) { res.status(err.message.includes('not found') ? 404 : 400).json({ error: err.message }); }
 });
 
-router.delete('/admin/zones/:id', (req, res) => {
+router.delete('/admin/zones/:id', requireAdmin, (req, res) => {
   try { res.json(demo.deleteZone(req.params.id)); }
-  catch (err) { res.status(404).json({ error: err.message }); }
+  catch (err) { res.status(err.message.includes('not found') ? 404 : 400).json({ error: err.message }); }
 });
 
 export { router as demoRoutes };

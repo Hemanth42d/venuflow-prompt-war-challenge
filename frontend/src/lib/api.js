@@ -3,8 +3,21 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 async function request(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const stored = localStorage.getItem('vf_session');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.accessId) {
+        headers['Authorization'] = `Bearer ${parsed.accessId}`;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
   });
   const data = await res.json();
