@@ -208,18 +208,38 @@ export function getAnalyticsSummary() {
 let eventCounter = store.events.length;
 
 export function createEvent(data) {
+  if (!data.name || typeof data.name !== 'string' || !data.name.trim()) {
+    throw new Error('Event name is required');
+  }
+  const maxCapacity = Number(data.maxCapacity);
+  if (isNaN(maxCapacity) || !Number.isInteger(maxCapacity) || maxCapacity <= 0) {
+    throw new Error('Max capacity must be a positive integer');
+  }
+  const start = new Date(data.startTime);
+  const end = new Date(data.endTime);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    throw new Error('Invalid start or end time');
+  }
+  if (end <= start) {
+    throw new Error('End time must be after start time');
+  }
+  const zoneExists = store.zones.some((z) => z.id === data.zoneId);
+  if (!zoneExists) {
+    throw new Error(`Zone with ID ${data.zoneId} does not exist`);
+  }
+
   const id = `evt-${++eventCounter}`;
   const evt = {
     id,
-    name: data.name,
-    sport: data.sport || 'General',
+    name: data.name.trim(),
+    sport: (data.sport || 'General').trim(),
     zoneId: data.zoneId,
     startTime: data.startTime,
     endTime: data.endTime,
     status: data.status || 'upcoming',
-    maxCapacity: Number(data.maxCapacity) || 500,
+    maxCapacity,
     currentAttendees: 0,
-    description: data.description || '',
+    description: (data.description || '').trim(),
     image: data.image || '🎫',
     updatedAt: new Date().toISOString(),
   };
@@ -230,9 +250,54 @@ export function createEvent(data) {
 export function updateEvent(id, data) {
   const evt = store.events.find((e) => e.id === id);
   if (!evt) throw new Error('Event not found');
+
+  const updateData = {};
+  if (data.name !== undefined) {
+    if (typeof data.name !== 'string' || !data.name.trim()) throw new Error('Event name cannot be empty');
+    updateData.name = data.name.trim();
+  }
+  if (data.sport !== undefined) updateData.sport = String(data.sport).trim();
+  if (data.status !== undefined) updateData.status = data.status;
+  if (data.description !== undefined) updateData.description = String(data.description).trim();
+  if (data.image !== undefined) updateData.image = data.image;
+
+  if (data.zoneId !== undefined) {
+    const zoneExists = store.zones.some((z) => z.id === data.zoneId);
+    if (!zoneExists) throw new Error(`Zone with ID ${data.zoneId} does not exist`);
+    updateData.zoneId = data.zoneId;
+  }
+
+  let startTime = evt.startTime;
+  let endTime = evt.endTime;
+  if (data.startTime !== undefined) {
+    const start = new Date(data.startTime);
+    if (isNaN(start.getTime())) throw new Error('Invalid start time');
+    startTime = data.startTime;
+    updateData.startTime = startTime;
+  }
+  if (data.endTime !== undefined) {
+    const end = new Date(data.endTime);
+    if (isNaN(end.getTime())) throw new Error('Invalid end time');
+    endTime = data.endTime;
+    updateData.endTime = endTime;
+  }
+  if (new Date(endTime) <= new Date(startTime)) {
+    throw new Error('End time must be after start time');
+  }
+
+  if (data.maxCapacity !== undefined) {
+    const maxCapacity = Number(data.maxCapacity);
+    if (isNaN(maxCapacity) || !Number.isInteger(maxCapacity) || maxCapacity <= 0) {
+      throw new Error('Max capacity must be a positive integer');
+    }
+    if (maxCapacity < evt.currentAttendees) {
+      throw new Error(`Max capacity cannot be lower than current attendees (${evt.currentAttendees})`);
+    }
+    updateData.maxCapacity = maxCapacity;
+  }
+
   Object.assign(evt, {
-    ...data,
-    maxCapacity: data.maxCapacity !== undefined ? Number(data.maxCapacity) : evt.maxCapacity,
+    ...updateData,
     updatedAt: new Date().toISOString(),
   });
   return evt;
@@ -248,21 +313,50 @@ export function deleteEvent(id) {
 export function updateZone(id, data) {
   const zone = store.zones.find((z) => z.id === id);
   if (!zone) throw new Error('Zone not found');
-  if (data.name) zone.name = data.name;
-  if (data.capacity !== undefined) zone.capacity = Number(data.capacity);
-  if (data.type) zone.type = data.type;
-  zone.updatedAt = new Date().toISOString();
+
+  const updateData = {};
+  if (data.name !== undefined) {
+    if (typeof data.name !== 'string' || !data.name.trim()) throw new Error('Zone name cannot be empty');
+    updateData.name = data.name.trim();
+  }
+  if (data.type !== undefined) updateData.type = data.type;
+
+  if (data.capacity !== undefined) {
+    const capacity = Number(data.capacity);
+    if (isNaN(capacity) || !Number.isInteger(capacity) || capacity <= 0) {
+      throw new Error('Capacity must be a positive integer');
+    }
+    if (capacity < (zone.currentOccupancy || 0)) {
+      throw new Error(`Capacity cannot be lower than current occupancy (${zone.currentOccupancy || 0})`);
+    }
+    updateData.capacity = capacity;
+  }
+
+  Object.assign(zone, {
+    ...updateData,
+    updatedAt: new Date().toISOString(),
+  });
   zone.crowdLevel = getCrowdLevel(zone.currentOccupancy || 0, zone.capacity);
   return zone;
 }
 
 export function createZone(data) {
+  if (!data.name || typeof data.name !== 'string' || !data.name.trim()) {
+    throw new Error('Zone name is required');
+  }
+  const capacity = Number(data.capacity);
+  if (isNaN(capacity) || !Number.isInteger(capacity) || capacity <= 0) {
+    throw new Error('Capacity must be a positive integer');
+  }
   const id = data.id || `zone-${Date.now()}`;
+  if (store.zones.some((z) => z.id === id)) {
+    throw new Error(`Zone with ID ${id} already exists`);
+  }
   const zone = {
     id,
-    name: data.name,
+    name: data.name.trim(),
     type: data.type || 'facility',
-    capacity: Number(data.capacity) || 500,
+    capacity,
     currentOccupancy: 0,
     crowdLevel: 'low',
     points: data.points || '0,0 50,0 50,50 0,50',

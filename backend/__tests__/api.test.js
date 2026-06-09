@@ -151,10 +151,34 @@ describe('Intelligence API', () => {
 describe('Admin CRUD API', () => {
   let createdEventId;
 
-  it('POST /api/admin/events creates a new event', async () => {
+  it('POST /api/admin/events returns 401 when missing token', async () => {
     const res = await fetch(`${BASE_URL}/api/admin/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Unauthorized Event' }),
+    });
+    assert.equal(res.status, 401);
+  });
+
+  it('POST /api/admin/events returns 403 when user is not admin', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer STAFF-ALPHA',
+      },
+      body: JSON.stringify({ name: 'Forbidden Event' }),
+    });
+    assert.equal(res.status, 403);
+  });
+
+  it('POST /api/admin/events creates a new event when authorized', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ADMIN-2026',
+      },
       body: JSON.stringify({
         name: 'Test Event',
         sport: 'Testing',
@@ -174,11 +198,68 @@ describe('Admin CRUD API', () => {
     createdEventId = data.id;
   });
 
-  it('PUT /api/admin/events/:id updates an event', async () => {
+  it('POST /api/admin/events returns 400 for empty event name', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ADMIN-2026',
+      },
+      body: JSON.stringify({
+        name: '',
+        maxCapacity: 100,
+        zoneId: 'main-stadium',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 3600000).toISOString(),
+      }),
+    });
+    assert.equal(res.status, 400);
+  });
+
+  it('POST /api/admin/events returns 400 for invalid dates', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ADMIN-2026',
+      },
+      body: JSON.stringify({
+        name: 'Invalid Date Event',
+        maxCapacity: 100,
+        zoneId: 'main-stadium',
+        startTime: new Date(Date.now() + 3600000).toISOString(),
+        endTime: new Date().toISOString(),
+      }),
+    });
+    assert.equal(res.status, 400);
+  });
+
+  it('POST /api/admin/events returns 400 for non-existent zone', async () => {
+    const res = await fetch(`${BASE_URL}/api/admin/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ADMIN-2026',
+      },
+      body: JSON.stringify({
+        name: 'Invalid Zone Event',
+        maxCapacity: 100,
+        zoneId: 'non-existent-zone',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 3600000).toISOString(),
+      }),
+    });
+    assert.equal(res.status, 400);
+  });
+
+  it('PUT /api/admin/events/:id updates an event when authorized', async () => {
     assert.ok(createdEventId, 'Need created event ID');
     const res = await fetch(`${BASE_URL}/api/admin/events/${createdEventId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ADMIN-2026',
+      },
       body: JSON.stringify({ name: 'Updated Test Event', maxCapacity: 200 }),
     });
     assert.equal(res.status, 200);
@@ -187,22 +268,28 @@ describe('Admin CRUD API', () => {
     assert.equal(data.maxCapacity, 200);
   });
 
-  it('DELETE /api/admin/events/:id deletes an event', async () => {
+  it('DELETE /api/admin/events/:id deletes an event when authorized', async () => {
     assert.ok(createdEventId, 'Need created event ID');
     const res = await fetch(`${BASE_URL}/api/admin/events/${createdEventId}`, {
       method: 'DELETE',
+      headers: {
+        'Authorization': 'Bearer ADMIN-2026',
+      },
     });
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(data.success, true);
   });
 
-  it('PUT /api/admin/zones/:id updates a zone', async () => {
+  it('PUT /api/admin/zones/:id updates a zone when authorized', async () => {
     const zones = await (await fetch(`${BASE_URL}/api/zones`)).json();
     const zone = zones[0];
     const res = await fetch(`${BASE_URL}/api/admin/zones/${zone.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ADMIN-2026',
+      },
       body: JSON.stringify({ name: zone.name, capacity: zone.capacity + 100 }),
     });
     assert.equal(res.status, 200);
